@@ -137,12 +137,10 @@ async fn check_status(job_id: String, jobs: &State<JobStorage>) -> JobResponse {
 }
 
 #[get("/proof/<job_id>")]
-fn proof_ws<'r>(_ws: WebSocket, job_id: String, jobs: &'r State<JobStorage>) -> Stream!['r] {
-    Stream! { _ws =>
+fn proof_ws<'r>(ws: WebSocket, job_id: String, jobs: &'r State<JobStorage>) -> Stream!['r] {
+    Stream! { ws =>
         loop {
             let job_response = check_status(job_id.clone(), &jobs).await;
-            println("job ID: {:?}", job_id);
-            println!("job response: {:?}", job_response);
             yield Message::Text(serde_json::to_string(&job_response).unwrap());
             if job_response.status == "complete" || job_response.status == "failed" {
                 return;
